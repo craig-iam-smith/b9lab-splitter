@@ -28,7 +28,7 @@ contract Splitter {
 
 	event LogTransfer(address indexed _sender, address indexed _rec1, address indexed _rec2, uint256 _value);
 	event LogWithdrawal(address indexed _withdrawee, uint256 _value);
-	event LogAddresses(address _a1, address _a2);
+	event LogSplitFunds(address indexed _sender, address indexed _recip1, address indexed _recip2, uint256 _value);
 	event LogContractRunning(bool _is);
 
 /// @dev Splitter constructor, initializes owner and isRunning
@@ -62,15 +62,15 @@ contract Splitter {
 		return true;
 	}
 
-/// @dev - owner of contract can kill contract and receive all unclaimed funds
-/// @dev - seems kind of mean to not disburse unclaimed funds
-	function killContract()
+/// @dev - in an emergency owner of contract can remove all funds from contract
+/// @dev - and receive all unclaimed funds, the history is all still available
+	function emergencyWithdraw()
 		public
 		onlyOwner
-		onlyIfRunning
 		returns (bool success) {
-
-		selfdestruct(msg.sender);
+		pauseContract();		// stop future transactions
+		LogWithdrawal(msg.sender, this.balance);
+		msg.sender.transfer(this.balance);
 		return true;
 	}
 
@@ -88,10 +88,10 @@ contract Splitter {
 		uint splitAmount;
 		uint refundAmount;
 
-		LogAddresses(recipient1, recipient2);
 		require(msg.value > 0);  	      	// must send more than zero
 		require(recipient1 != 0);			// fail if zero address
 		require(recipient2 != 0);			// fail if zero address
+		LogSplitFunds(msg.sender, recipient1, recipient2, msg.value);
 		splitAmount = msg.value / 2;		// measured in wei, 
 		refundAmount = msg.value - (2 * splitAmount);  // refund leftover to msg.sender
 
