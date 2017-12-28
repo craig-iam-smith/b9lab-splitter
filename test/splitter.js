@@ -2,57 +2,57 @@ var Splitter = artifacts.require("./Splitter.sol");
 
 contract('Splitter', function(accounts) {
 
-  it("should send equal ether to Bob and Carol", function() {
+  it("should send equal ether to Recipient1 and Recipient2", function() {
     var split;
 
-    var AliceAccount = accounts[0];
+    var sendingAccount = accounts[0];
     //    Get initial balances of first and second account.
-    var BobAccount = accounts[1];
-    var CarolAccount = accounts[2];
+    var recipient1Account = accounts[1];
+    var recipient2Account = accounts[2];
 
     var Balance;
-    var AliceStartingBalance;
-    var BobStartingBalance;
-    var CarolStartingBalance;
-    var AliceEndingBalance;
-    var BobEndingBalance;
-    var CarolEndingBalance;
-    var AliceSum;
-    var BobSum;
-    var CarolSum;
+    var sendingStartingBalance;
+    var recipient1StartingBalance;
+    var recipient2StartingBalance;
+    var sendingEndingBalance;
+    var recipient1EndingBalance;
+    var recipient2EndingBalance;
+    var sendingSum;
+    var recipient1Sum;
+    var recipient2Sum;
 
 
     var sendValue = 10;
     var splitValue = sendValue / 2;
-    BobStartingBalance = web3.eth.getBalance(BobAccount);
-    assert.equal(BobStartingBalance.toNumber(), web3.toWei(100, "ether"), "Bad BobStartingBalance");
-    CarolStartingBalance = web3.eth.getBalance(CarolAccount);
-    assert.equal(CarolStartingBalance.toNumber(), web3.toWei(100, "ether"), "Bad CarolStartingBalance");
+    recipient1StartingBalance = web3.eth.getBalance(recipient1Account);
+    assert.equal(recipient1StartingBalance.toNumber(), web3.toWei(100, "ether"), "Bad recipient1StartingBalance");
+    recipient2StartingBalance = web3.eth.getBalance(recipient2Account);
+    assert.equal(recipient2StartingBalance.toNumber(), web3.toWei(100, "ether"), "Bad recipient2StartingBalance");
 
     return Splitter.deployed().then(function(instance) {
         split = instance;
-        return split.splitFunds.sendTransaction( BobAccount, CarolAccount, {from: AliceAccount}, {value: web3.toWei(sendValue, "ether")} );
+        return split.splitFunds.sendTransaction( recipient1Account, recipient2Account, {from: sendingAccount}, {value: web3.toWei(sendValue, "ether")} );
     }).then(function(_txHash) {
-        return split.getBalance.call(AliceAccount);
+        return split.getBalance.call(sendingAccount);
     }).then(function(Balance) {
-        AliceSum += Balance;   
-        AliceEndingBalance = AliceSum + AliceStartingBalance;
-        return split.getBalance.call(BobAccount);
+        sendingSum += Balance;   
+        sendingEndingBalance = sendingSum + sendingStartingBalance;
+        return split.getBalance.call(recipient1Account);
     }).then(function(Balance) {
-        BobSum += Balance;
-        return split.getBalance.call(CarolAccount);
+        recipient1Sum += Balance;
+        return split.getBalance.call(recipient2Account);
     }).then(function(Balance) {
-        CarolSum += Balance;
-        return split.withdraw.sendTransaction( BobAccount, {from: BobAccount})
+        recipient2Sum += Balance;
+        return split.withdraw.sendTransaction( recipient1Account, {from: recipient1Account})
     }).then(function(_txHash) {
-        return web3.eth.getBalance(BobAccount);
-    }).then(function(BobEndingBalance) {
-        assert.equal(BobEndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad BobEndingBalance");
-        return split.withdraw.sendTransaction( CarolAccount, {from: CarolAccount});
-    }).then(function(CarolEndingBalance) {
-        return web3.eth.getBalance(CarolAccount);
-    }).then(function(CarolEndingBalance) {
-        assert.equal(CarolEndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad CarolEndingBalance");
+        return web3.eth.getBalance(recipient1Account);
+    }).then(function(recipient1EndingBalance) {
+        assert.equal(recipient1EndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad recipient1EndingBalance");
+        return split.withdraw.sendTransaction( recipient2Account, {from: recipient2Account});
+    }).then(function(recipient2EndingBalance) {
+        return web3.eth.getBalance(recipient2Account);
+    }).then(function(recipient2EndingBalance) {
+        assert.equal(recipient2EndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad recipient2EndingBalance");
     });
 
   });
