@@ -33,26 +33,26 @@ contract('Splitter', function(accounts) {
         split = instance;
         return split.splitFunds.sendTransaction( recipient1Account, recipient2Account, {from: sendingAccount}, {value: web3.toWei(sendValue, "ether")} );
     }).then(function(_txHash) {
-        return split.getBalance.call(sendingAccount);
+        return split.balances.call(sendingAccount);
     }).then(function(Balance) {
         sendingSum += Balance;   
         sendingEndingBalance = sendingSum + sendingStartingBalance;
-        return split.getBalance.call(recipient1Account);
+        return split.balances.call(recipient1Account);
     }).then(function(Balance) {
         recipient1Sum += Balance;
-        return split.getBalance.call(recipient2Account);
+        return split.balances.call(recipient2Account);
     }).then(function(Balance) {
         recipient2Sum += Balance;
         return split.withdraw.sendTransaction( recipient1Account, {from: recipient1Account})
     }).then(function(_txHash) {
         return web3.eth.getBalance(recipient1Account);
     }).then(function(recipient1EndingBalance) {
-        assert.equal(recipient1EndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad recipient1EndingBalance");
+        assert.equal(recipient1EndingBalance.toNumber(), web3.toWei(104997703100, "gwei"), "Bad recipient1EndingBalance");
         return split.withdraw.sendTransaction( recipient2Account, {from: recipient2Account});
     }).then(function(recipient2EndingBalance) {
         return web3.eth.getBalance(recipient2Account);
     }).then(function(recipient2EndingBalance) {
-        assert.equal(recipient2EndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad recipient2EndingBalance");
+        assert.equal(recipient2EndingBalance.toNumber(), web3.toWei(104997703100, "gwei"), "Bad recipient2EndingBalance");
     });
 
   });

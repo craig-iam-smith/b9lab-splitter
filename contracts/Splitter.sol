@@ -17,14 +17,13 @@ import "./ConvertLib.sol";
 
 contract Splitter {
 	address owner;	// owner can be anyone
-	mapping (address => uint) balances;
+	mapping (address => uint) public balances;
 
 	event LogTransfer(address indexed _sender, address indexed _rec1, address indexed _rec2, uint256 _value);
 	event LogWithdrawal(address indexed _withdrawee, uint256 _value);
 	event LogAddresses(address _a1, address _a2);
 
 	function Splitter() public { // owner can be anyone;
-		owner = msg.sender;
 	}
 
 	
@@ -49,7 +48,7 @@ contract Splitter {
 		balances[msg.sender] += refundAmount;
 	}
 
-	function withdraw(address withdrawee) public  {
+	function withdraw(address withdrawee) public  returns(bool) {
 
 	// only the person who owns the funds can request the funds be sent
 		require (msg.sender == withdrawee);
@@ -58,13 +57,16 @@ contract Splitter {
 		require (balances[msg.sender] > 0);
 
 	// withdraw the eth 
-		msg.sender.transfer(balances[msg.sender]);
+		uint amountToSend = balances[msg.sender];
 		balances[msg.sender] = 0;  
+		msg.sender.transfer(amountToSend);
+
 		LogWithdrawal(msg.sender, balances[msg.sender]);
+		return true;
 	}
 
-	function getBalance(address addr) public view returns(uint) {
-		return balances[addr];
-	}
+//	function getBalance(address addr) public view returns(uint) {
+//		return balances[addr];
+//	}
 
 }
