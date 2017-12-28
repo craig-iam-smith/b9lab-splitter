@@ -30,10 +30,8 @@ contract('Splitter', function(accounts) {
     assert.equal(CarolStartingBalance.toNumber(), web3.toWei(100, "ether"), "Bad CarolStartingBalance");
 
     return Splitter.deployed().then(function(instance) {
-      split = instance;
-      return split.SetAddresses(BobAccount, CarolAccount);
-    }).then(function() {
-        return split.split.sendTransaction( {from: AliceAccount}, {value: web3.toWei(sendValue, "ether")} );
+        split = instance;
+        return split.splitFunds.sendTransaction( BobAccount, CarolAccount, {from: AliceAccount}, {value: web3.toWei(sendValue, "ether")} );
     }).then(function(_txHash) {
         return split.getBalance.call(AliceAccount);
     }).then(function(Balance) {
@@ -45,16 +43,16 @@ contract('Splitter', function(accounts) {
         return split.getBalance.call(CarolAccount);
     }).then(function(Balance) {
         CarolSum += Balance;
-        return split.withdraw.sendTransaction( {from: BobAccount})
+        return split.withdraw.sendTransaction( BobAccount, {from: BobAccount})
     }).then(function(_txHash) {
         return web3.eth.getBalance(BobAccount);
     }).then(function(BobEndingBalance) {
-        assert.equal(BobEndingBalance.toNumber(), web3.toWei(104997787300, "gwei"), "Bad BobEndingBalance");
-        return split.withdraw.sendTransaction( {from: CarolAccount});
+        assert.equal(BobEndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad BobEndingBalance");
+        return split.withdraw.sendTransaction( CarolAccount, {from: CarolAccount});
     }).then(function(CarolEndingBalance) {
         return web3.eth.getBalance(CarolAccount);
     }).then(function(CarolEndingBalance) {
-        assert.equal(CarolEndingBalance.toNumber(), web3.toWei(104997787300, "gwei"), "Bad CarolEndingBalance");
+        assert.equal(CarolEndingBalance.toNumber(), web3.toWei(104997714400, "gwei"), "Bad CarolEndingBalance");
     });
 
   });
