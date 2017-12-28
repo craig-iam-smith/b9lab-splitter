@@ -43,16 +43,16 @@ contract('Splitter', function(accounts) {
         return split.balances.call(recipient2Account);
     }).then(function(Balance) {
         recipient2Sum += Balance;
-        return split.withdraw.sendTransaction( recipient1Account, {from: recipient1Account})
+        return split.withdraw.sendTransaction( {from: recipient1Account} );
     }).then(function(_txHash) {
         return web3.eth.getBalance(recipient1Account);
     }).then(function(recipient1EndingBalance) {
-        assert.equal(recipient1EndingBalance.toNumber(), web3.toWei(104997703100, "gwei"), "Bad recipient1EndingBalance");
-        return split.withdraw.sendTransaction( recipient2Account, {from: recipient2Account});
+        assert.equal(recipient1EndingBalance.toNumber(), web3.toWei(104997817100, "gwei"), "Bad recipient1EndingBalance");
+        return split.withdraw.sendTransaction( {from: recipient2Account}) ;
     }).then(function(recipient2EndingBalance) {
         return web3.eth.getBalance(recipient2Account);
     }).then(function(recipient2EndingBalance) {
-        assert.equal(recipient2EndingBalance.toNumber(), web3.toWei(104997703100, "gwei"), "Bad recipient2EndingBalance");
+        assert.equal(recipient2EndingBalance.toNumber(), web3.toWei(104997817100, "gwei"), "Bad recipient2EndingBalance");
     });
 
   });

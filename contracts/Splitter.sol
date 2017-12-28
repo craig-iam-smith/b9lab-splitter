@@ -15,22 +15,75 @@ import "./ConvertLib.sol";
 //         recipients must request their funds
 //  only quite simple error checking
 
+/// @title Splitter first exercise contract 
+/// @author Craig Smith <craig.iam.smith@gmail.com>
+/// @notice Contract to splite funds bilaterally
+/// @dev Using the Natspec format
+
 contract Splitter {
-	address owner;	// owner can be anyone
+	address public owner;
+	bool public isRunning;
+
 	mapping (address => uint) public balances;
 
 	event LogTransfer(address indexed _sender, address indexed _rec1, address indexed _rec2, uint256 _value);
 	event LogWithdrawal(address indexed _withdrawee, uint256 _value);
 	event LogAddresses(address _a1, address _a2);
+	event LogContractRunning(bool _is);
 
-	function Splitter() public { // owner can be anyone;
+/// @dev Splitter constructor, initializes owner and isRunning
+	function Splitter() public { 
+		owner = msg.sender;
+		isRunning = true;
 	}
 
-	
+/// @dev - only owner can pause and unpause the contract
+/// @return bool success
+	function pauseContract() public 
+		onlyOwner
+		onlyIfRunning
+		returns (bool success) {
 
+		isRunning = false;
+		LogContractRunning(isRunning);
+		return true;
+	}
+
+/// @dev - only owner can pause and unpause the contract 
+/// @return bool success
+	function unPauseContract()
+		public
+		onlyOwner
+		returns (bool success) {
+
+		require (!isRunning);
+		isRunning = true;
+		LogContractRunning(isRunning);
+		return true;
+	}
+
+/// @dev - owner of contract can kill contract and receive all unclaimed funds
+/// @dev - seems kind of mean to not disburse unclaimed funds
+	function killContract()
+		public
+		onlyOwner
+		onlyIfRunning
+		returns (bool success) {
+
+		selfdestruct(msg.sender);
+		return true;
+	}
+
+
+/// @param recipient1 address one of receivers of funds
+/// @param recipient2 address other of receivers of funds
+/// @dev - recipient1 & recipient2 must call withdraw to receive funds
+/// @return bool success
 	function splitFunds(address recipient1, address recipient2) 
 		public 
-		payable  {
+		onlyIfRunning
+		payable  
+		returns (bool success) {
 
 		uint splitAmount;
 		uint refundAmount;
@@ -39,19 +92,23 @@ contract Splitter {
 		require(msg.value > 0);  	      	// must send more than zero
 		require(recipient1 != 0);			// fail if zero address
 		require(recipient2 != 0);			// fail if zero address
-		splitAmount = msg.value / 2;	// measured in wei, if we lose one, too bad
-		refundAmount = msg.value - (2 * splitAmount);
+		splitAmount = msg.value / 2;		// measured in wei, 
+		refundAmount = msg.value - (2 * splitAmount);  // refund leftover to msg.sender
 
 // do the accounting for the splitting of this transaction
 		balances[recipient1] += splitAmount;
 		balances[recipient2] += splitAmount;
 		balances[msg.sender] += refundAmount;
+
+		return true;
 	}
 
-	function withdraw(address withdrawee) public  returns(bool) {
-
-	// only the person who owns the funds can request the funds be sent
-		require (msg.sender == withdrawee);
+/// @dev - any address that has had funds sent to it can withdraw
+/// @return bool success
+	function withdraw() 
+		public  
+		onlyIfRunning
+		returns(bool success) {
 
 	// if nothing to send, don't call transfer
 		require (balances[msg.sender] > 0);
@@ -65,8 +122,15 @@ contract Splitter {
 		return true;
 	}
 
-//	function getBalance(address addr) public view returns(uint) {
-//		return balances[addr];
-//	}
+/// @dev - document the modifier
+	modifier onlyOwner {
+		require(msg.sender == owner);
+		_;
+	}
+
+	modifier onlyIfRunning {
+		require(isRunning);
+		_;
+	}
 
 }
